@@ -236,163 +236,310 @@ function initParallax() {
   }, { passive: true });
 }
 
-/* ── AI Health Check ── */
+/* ── Premium Vehicle Health Advisor ── */
 function initHealthCheck() {
-  const form = document.getElementById('healthCheckForm');
-  if (!form) return;
+  if (!document.getElementById('advisorWrap')) return;
 
-  const questions = [
+  const QUESTIONS = [
     {
       id: 'mileage',
-      label: 'Current Mileage',
-      options: ['Under 10,000 km', '10,000–50,000 km', '50,000–100,000 km', 'Over 100,000 km'],
-      parts: { 'Over 100,000 km': ['engine','suspension','brakes'] }
+      text: 'What is your current mileage?',
+      icon: '📍',
+      bg: '/public/assets/exterior-day.jpg',
+      system: null,
+      options: [
+        { label: 'Under 30,000 km', icon: '✅', systems: {}, score: 0 },
+        { label: '30,000 – 60,000 km', icon: '🟡', systems: {}, score: 5 },
+        { label: '60,000 – 100,000 km', icon: '🟠', systems: { engine: 'soon', tyres: 'soon' }, score: 10 },
+        { label: 'Over 100,000 km', icon: '🔴', systems: { engine: 'alert', suspension: 'alert', tyres: 'alert' }, score: 20 }
+      ]
     },
     {
       id: 'oil',
-      label: 'Last Oil Change',
-      options: ['Under 3 months', '3–6 months ago', '6–12 months ago', 'Over 1 year ago'],
-      parts: { 'Over 1 year ago': ['engine'], '6–12 months ago': ['engine'] }
+      text: 'When was your last oil change?',
+      icon: '🛢️',
+      bg: '/public/assets/oilchange.png',
+      system: 'engine',
+      options: [
+        { label: 'Within 3 months', icon: '✅', systems: { engine: 'good' }, score: 0 },
+        { label: '3 – 6 months ago', icon: '🟡', systems: { engine: 'good' }, score: 5 },
+        { label: '6 – 12 months ago', icon: '🟠', systems: { engine: 'alert' }, score: 15 },
+        { label: 'Over 1 year ago', icon: '🔴', systems: { engine: 'critical' }, score: 25 }
+      ]
     },
     {
       id: 'brakes',
-      label: 'Brake Performance',
-      options: ['Excellent', 'Slight noise', 'Vibration', 'Poor stopping'],
-      parts: { 'Slight noise': ['brakes'], 'Vibration': ['brakes','suspension'], 'Poor stopping': ['brakes'] }
+      text: 'How are your brakes performing?',
+      icon: '🛑',
+      bg: '/public/assets/mechanical-lift.jpg',
+      system: 'brakes',
+      options: [
+        { label: 'Excellent — no issues', icon: '✅', systems: { brakes: 'good' }, score: 0 },
+        { label: 'Slight squeaking noise', icon: '🟡', systems: { brakes: 'alert' }, score: 12 },
+        { label: 'Vibration when braking', icon: '🟠', systems: { brakes: 'alert', suspension: 'alert' }, score: 18 },
+        { label: 'Poor stopping power', icon: '🔴', systems: { brakes: 'critical' }, score: 28 }
+      ]
     },
     {
       id: 'warning',
-      label: 'Warning Lights',
-      options: ['None', 'Engine light', 'Battery light', 'Multiple lights'],
-      parts: { 'Engine light': ['engine'], 'Battery light': ['battery'], 'Multiple lights': ['engine','battery'] }
+      text: 'Any dashboard warning lights?',
+      icon: '⚠️',
+      bg: '/public/assets/diagnosis.png',
+      system: 'engine',
+      options: [
+        { label: 'No warning lights', icon: '✅', systems: {}, score: 0 },
+        { label: 'Engine / Check engine', icon: '🟠', systems: { engine: 'critical' }, score: 22 },
+        { label: 'Battery warning', icon: '🟠', systems: { battery: 'critical' }, score: 20 },
+        { label: 'Multiple lights on', icon: '🔴', systems: { engine: 'critical', battery: 'alert' }, score: 30 }
+      ]
     },
     {
       id: 'ac',
-      label: 'A/C Cooling',
-      options: ['Excellent', 'Slightly warm', 'Not cooling', 'Not working'],
-      parts: { 'Slightly warm': ['ac'], 'Not cooling': ['ac'], 'Not working': ['ac'] }
+      text: 'How is your A/C cooling?',
+      icon: '❄️',
+      bg: '/public/assets/ac-sign.jpg',
+      system: 'ac',
+      options: [
+        { label: 'Ice cold — excellent', icon: '✅', systems: { ac: 'good' }, score: 0 },
+        { label: 'Slightly less cool', icon: '🟡', systems: { ac: 'alert' }, score: 8 },
+        { label: 'Not cooling properly', icon: '🟠', systems: { ac: 'critical' }, score: 18 },
+        { label: 'Not working at all', icon: '🔴', systems: { ac: 'critical' }, score: 25 }
+      ]
     },
     {
       id: 'suspension',
-      label: 'Suspension / Noise',
-      options: ['No issues', 'Slight vibration', 'Knocking noise', 'Heavy vibration'],
-      parts: { 'Slight vibration': ['suspension'], 'Knocking noise': ['suspension'], 'Heavy vibration': ['suspension','tyres'] }
+      text: 'Any vibration or unusual noise?',
+      icon: '🔧',
+      bg: '/public/assets/tyre-balance.jpg',
+      system: 'suspension',
+      options: [
+        { label: 'Smooth — no issues', icon: '✅', systems: { suspension: 'good', tyres: 'good' }, score: 0 },
+        { label: 'Slight vibration at speed', icon: '🟡', systems: { tyres: 'alert' }, score: 10 },
+        { label: 'Knocking or clunking', icon: '🟠', systems: { suspension: 'alert' }, score: 18 },
+        { label: 'Heavy vibration', icon: '🔴', systems: { suspension: 'critical', tyres: 'alert' }, score: 25 }
+      ]
     }
   ];
 
-  const answers = {};
-  let currentQ = 0;
+  const SYSTEM_LABELS = {
+    engine: 'Engine', ac: 'A/C System',
+    brakes: 'Brakes', battery: 'Battery',
+    tyres: 'Tyres', suspension: 'Suspension'
+  };
 
-  const qContainer = document.getElementById('hcQuestions');
-  const carSvg = document.getElementById('carDiagram');
-  const scoreNum = document.getElementById('healthScoreNum');
-  const scoreCircle = document.getElementById('healthScoreCircle');
-  const resultSection = document.getElementById('hcResult');
-  const resultTags = document.getElementById('hcResultTags');
-  const submitBtn = document.getElementById('hcSubmit');
+  const SYSTEM_STATUS_TEXT = {
+    good: 'Good condition', alert: 'Needs attention',
+    critical: 'Service required', '': 'Not checked'
+  };
 
-  function renderQuestion(index) {
-    if (!qContainer) return;
-    const q = questions[index];
-    qContainer.innerHTML = `
-      <div class="hc-question visible">
-        <div class="hc-question-label">${q.label}</div>
-        <div class="hc-options">
-          ${q.options.map(opt => `
-            <button class="hc-option ${answers[q.id] === opt ? 'selected' : ''}"
-              data-q="${q.id}" data-v="${opt}">${opt}</button>
+  const SERVICE_MAP = {
+    engine: { label: 'Engine Service', level: 'urgent' },
+    battery: { label: 'Battery Check', level: 'urgent' },
+    brakes: { label: 'Brake Service', level: 'urgent' },
+    ac: { label: 'A/C Service', level: 'soon' },
+    suspension: { label: 'Suspension Check', level: 'soon' },
+    tyres: { label: 'Tyre Inspection', level: 'optional' }
+  };
+
+  let current = 0;
+  let answers = {};
+  let systemState = {}; // { engine: 'alert', brakes: 'good', ... }
+  let totalDeduction = 0;
+
+  const els = {
+    area: document.getElementById('advisorQuestionArea'),
+    stepLabel: document.getElementById('advisorStepLabel'),
+    progress: document.getElementById('advisorProgress'),
+    back: document.getElementById('advisorBack'),
+    next: document.getElementById('advisorNext'),
+    bg: document.getElementById('advisorBg'),
+    scoreCircle: document.getElementById('advisorScoreCircle'),
+    scoreNum: document.getElementById('advisorScoreNum'),
+    scoreValue: document.getElementById('advisorScoreValue'),
+    scoreSub: document.getElementById('advisorScoreSub'),
+    resultBar: document.getElementById('advisorResultBar'),
+    resultServices: document.getElementById('advisorResultServices')
+  };
+
+  // Expose reset globally for "Start Over" button
+  window.advisorReset = function() {
+    current = 0; answers = {}; systemState = {}; totalDeduction = 0;
+    Object.keys(SYSTEM_LABELS).forEach(k => updateSystemCard(k, ''));
+    updateScore(100);
+    if (els.resultBar) els.resultBar.classList.remove('visible');
+    if (els.next) { els.next.textContent = 'Next →'; els.next.style.background = ''; }
+    render();
+  };
+
+  function render() {
+    if (!els.area) return;
+    const q = QUESTIONS[current];
+
+    // Step label & progress
+    if (els.stepLabel) els.stepLabel.textContent = `Step ${current + 1} of ${QUESTIONS.length}`;
+    if (els.progress) {
+      const dots = els.progress.querySelectorAll('.advisor-progress-dot');
+      dots.forEach((d, i) => {
+        d.classList.toggle('active', i === current);
+        d.classList.toggle('done', i < current);
+      });
+    }
+
+    // Back button
+    if (els.back) els.back.disabled = current === 0;
+
+    // Next button label
+    if (els.next) {
+      els.next.textContent = current === QUESTIONS.length - 1 ? 'See Results →' : 'Next →';
+    }
+
+    // Background image
+    if (els.bg && q.bg) {
+      els.bg.style.backgroundImage = `url('${q.bg}')`;
+    }
+
+    // Render question
+    const selectedVal = answers[q.id];
+    els.area.innerHTML = `
+      <div class="advisor-question visible">
+        <div class="advisor-q-text">${q.text}</div>
+        <div class="advisor-options">
+          ${q.options.map((opt, i) => `
+            <button class="advisor-opt ${selectedVal === i ? 'selected' : ''}"
+              data-idx="${i}" type="button">
+              <span class="advisor-opt-icon">${opt.icon}</span>
+              <span style="flex:1;">${opt.label}</span>
+              <span class="advisor-opt-check">${selectedVal === i ? '✓' : ''}</span>
+            </button>
           `).join('')}
         </div>
       </div>
-      <div style="display:flex;gap:0.5rem;margin-top:1.5rem;align-items:center;">
-        ${index > 0 ? '<button class="btn btn-ghost" id="hcPrev" style="padding:0.5rem 1rem;font-size:0.8rem;">← Back</button>' : ''}
-        <span style="font-size:0.72rem;color:var(--text-muted);margin-left:auto;">${index + 1} / ${questions.length}</span>
-        ${index < questions.length - 1
-          ? '<button class="btn btn-primary" id="hcNext" style="padding:0.5rem 1.2rem;font-size:0.8rem;">Next →</button>'
-          : '<button class="btn btn-primary" id="hcAnalyze" style="padding:0.5rem 1.2rem;font-size:0.8rem;">Analyze →</button>'
-        }
-      </div>
     `;
 
-    qContainer.querySelectorAll('.hc-option').forEach(btn => {
+    // Bind option clicks
+    els.area.querySelectorAll('.advisor-opt').forEach(btn => {
       btn.addEventListener('click', () => {
-        answers[btn.dataset.q] = btn.dataset.v;
-        qContainer.querySelectorAll('.hc-option').forEach(b => b.classList.remove('selected'));
-        btn.classList.add('selected');
-        updateCarDiagram();
+        const idx = parseInt(btn.dataset.idx);
+        selectOption(q, idx);
       });
     });
-
-    const nextBtn = document.getElementById('hcNext');
-    const prevBtn = document.getElementById('hcPrev');
-    const analyzeBtn = document.getElementById('hcAnalyze');
-
-    if (nextBtn) nextBtn.addEventListener('click', () => { currentQ++; renderQuestion(currentQ); });
-    if (prevBtn) prevBtn.addEventListener('click', () => { currentQ--; renderQuestion(currentQ); });
-    if (analyzeBtn) analyzeBtn.addEventListener('click', showResults);
   }
 
-  function updateCarDiagram() {
-    if (!carSvg) return;
-    const affectedParts = new Set();
-    questions.forEach(q => {
-      const val = answers[q.id];
-      if (val && q.parts[val]) q.parts[val].forEach(p => affectedParts.add(p));
+  function selectOption(q, idx) {
+    const opt = q.options[idx];
+    answers[q.id] = idx;
+
+    // Apply system states from this answer
+    Object.entries(opt.systems).forEach(([sys, state]) => {
+      // Only worsen, never improve (unless explicitly 'good')
+      const current = systemState[sys] || '';
+      const priority = { '': 0, 'good': 1, 'alert': 2, 'critical': 3 };
+      if ((priority[state] || 0) >= (priority[current] || 0)) {
+        systemState[sys] = state;
+        updateSystemCard(sys, state);
+      }
     });
 
-    carSvg.querySelectorAll('.car-part').forEach(part => {
-      const pid = part.getAttribute('data-part');
-      part.classList.remove('warning', 'critical', 'good');
-      if (affectedParts.has(pid)) part.classList.add('warning');
+    // Recalculate total score
+    totalDeduction = 0;
+    Object.keys(answers).forEach(qid => {
+      const qi = QUESTIONS.find(x => x.id === qid);
+      if (qi) totalDeduction += qi.options[answers[qid]].score;
     });
+    const score = Math.max(10, 100 - totalDeduction);
+    updateScore(score);
+
+    // Re-render to show selection
+    render();
+  }
+
+  function updateSystemCard(sys, state) {
+    const card = document.getElementById(`sys-${sys}`);
+    const statusEl = document.getElementById(`sys-${sys}-status`);
+    if (!card || !statusEl) return;
+    card.className = 'advisor-system-card' + (state ? ` ${state}` : '');
+    statusEl.textContent = SYSTEM_STATUS_TEXT[state] || 'Not checked';
+  }
+
+  function updateScore(score) {
+    const circumference = 251.2;
+    const offset = circumference - (score / 100) * circumference;
+    const color = score >= 80 ? '#22C55E' : score >= 55 ? '#F97316' : '#EF4444';
+    const label = score >= 80 ? 'Good Condition' : score >= 55 ? 'Needs Attention' : 'Service Required';
+    const answered = Object.keys(answers).length;
+    const sub = answered === QUESTIONS.length
+      ? `Based on your ${QUESTIONS.length} responses`
+      : `${answered} of ${QUESTIONS.length} questions answered`;
+
+    if (els.scoreCircle) {
+      els.scoreCircle.style.strokeDashoffset = offset;
+      els.scoreCircle.style.stroke = color;
+    }
+    if (els.scoreNum) { els.scoreNum.textContent = score + '%'; els.scoreNum.style.color = color; }
+    if (els.scoreValue) { els.scoreValue.textContent = label; els.scoreValue.style.color = color; }
+    if (els.scoreSub) els.scoreSub.textContent = sub;
   }
 
   function showResults() {
-    const affectedParts = new Set();
-    questions.forEach(q => {
-      const val = answers[q.id];
-      if (val && q.parts[val]) q.parts[val].forEach(p => affectedParts.add(p));
+    // Collect all affected systems
+    const urgentSystems = new Set();
+    const soonSystems = new Set();
+    const optionalSystems = new Set();
+
+    Object.entries(systemState).forEach(([sys, state]) => {
+      if (state === 'critical') urgentSystems.add(sys);
+      else if (state === 'alert') soonSystems.add(sys);
     });
 
-    const total = affectedParts.size;
-    const score = Math.max(20, Math.min(100, 100 - (total * 15)));
+    // Build service pills
+    const pills = [];
+    urgentSystems.forEach(sys => {
+      if (SERVICE_MAP[sys]) pills.push({ ...SERVICE_MAP[sys], level: 'urgent' });
+    });
+    soonSystems.forEach(sys => {
+      if (SERVICE_MAP[sys] && !urgentSystems.has(sys)) pills.push({ ...SERVICE_MAP[sys], level: 'soon' });
+    });
 
-    if (scoreNum) scoreNum.textContent = score + '%';
-    if (scoreCircle) {
-      const circumference = 2 * Math.PI * 40;
-      const offset = circumference - (score / 100) * circumference;
-      scoreCircle.style.strokeDasharray = circumference;
-      scoreCircle.style.strokeDashoffset = offset;
-      scoreCircle.style.stroke = score >= 80 ? '#22C55E' : score >= 50 ? '#F97316' : '#EF4444';
+    if (!pills.length) pills.push({ label: 'Routine Service Check', level: 'optional' });
+
+    if (els.resultServices) {
+      els.resultServices.innerHTML = pills.map((p, i) =>
+        `<span class="advisor-service-pill ${p.level}" style="animation-delay:${i * 0.08}s">${p.label}</span>`
+      ).join('');
     }
-
-    if (resultTags) {
-      const services = [];
-      if (affectedParts.has('engine')) services.push({ label: 'Engine Service', level: 'urgent' });
-      if (affectedParts.has('battery')) services.push({ label: 'Battery Check', level: 'urgent' });
-      if (affectedParts.has('brakes')) services.push({ label: 'Brake Service', level: 'urgent' });
-      if (affectedParts.has('ac')) services.push({ label: 'A/C Service', level: 'soon' });
-      if (affectedParts.has('suspension')) services.push({ label: 'Suspension Check', level: 'soon' });
-      if (affectedParts.has('tyres')) services.push({ label: 'Tyre Inspection', level: 'optional' });
-      if (!services.length) services.push({ label: 'Full Service Check', level: 'optional' });
-
-      const msg = encodeURIComponent('Hi, I completed the Vehicle Health Check and would like to book a service.');
-      resultTags.innerHTML = services.map(s =>
-        `<span class="hc-service-tag ${s.level}">${s.label}</span>`
-      ).join('') + `<div style="margin-top:1.5rem;display:flex;gap:0.75rem;flex-wrap:wrap;">
-        <a href="https://wa.me/971522553418?text=${msg}" target="_blank" class="btn btn-whatsapp" style="font-size:0.82rem;padding:0.6rem 1.2rem;">
-          📱 Book via WhatsApp
-        </a>
-        <a href="tel:+971522553418" class="btn btn-secondary" style="font-size:0.82rem;padding:0.6rem 1.2rem;">
-          📞 Call Us
-        </a>
-      </div>`;
-    }
-
-    if (resultSection) resultSection.classList.add('visible');
+    if (els.resultBar) els.resultBar.classList.add('visible');
   }
 
-  renderQuestion(0);
+  // Next / Back handlers
+  if (els.next) {
+    els.next.addEventListener('click', () => {
+      const q = QUESTIONS[current];
+      if (answers[q.id] === undefined) {
+        // Shake hint — select something first
+        els.area.querySelector('.advisor-options').style.animation = 'none';
+        els.area.querySelector('.advisor-options').offsetHeight;
+        return;
+      }
+      if (current < QUESTIONS.length - 1) {
+        current++;
+        render();
+      } else {
+        showResults();
+        els.next.textContent = '✓ Done';
+        els.next.style.background = '#22C55E';
+      }
+    });
+  }
+
+  if (els.back) {
+    els.back.addEventListener('click', () => {
+      if (current > 0) { current--; render(); }
+    });
+  }
+
+  // Init
+  render();
+  updateScore(100);
 }
 
 /* ── Maintenance Timeline Input ── */

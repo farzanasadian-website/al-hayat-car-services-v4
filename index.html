@@ -87,52 +87,152 @@
   </div>
 </div>
 
-<!-- AI Health Check -->
+<!-- AI Vehicle Health Check — Premium Cinematic -->
 <div style="background:var(--bg-primary);">
   <div class="section">
     <div class="section-header">
       <span class="section-eyebrow">Signature Feature</span>
-      <h2 class="section-title">AI Vehicle Health Check</h2>
-      <p class="section-desc">Answer a few questions about your car. We will identify what needs attention and connect you directly with our team.</p>
+      <h2 class="section-title">Vehicle Health Advisor</h2>
+      <p class="section-desc">Answer 6 questions. Our system identifies what your vehicle needs and connects you directly with our team — free, no commitment.</p>
     </div>
-    <div class="health-check-wrap fade-up">
-      <div class="health-check-header">
-        <div><div style="font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--accent-orange);margin-bottom:0.3rem;">Intelligent Diagnostic</div><div style="font-size:1.1rem;font-weight:700;">Check Your Vehicle Health</div></div>
-        <span class="badge badge-blue">Free &middot; No Commitment</span>
-      </div>
-      <div class="health-check-body">
-        <div class="health-check-questions"><div id="hcQuestions"></div></div>
-        <div class="health-check-visual">
-          <div class="car-diagram" id="carDiagram">
-            <svg viewBox="0 0 400 220" xmlns="http://www.w3.org/2000/svg">
-              <rect x="60" y="100" width="280" height="80" rx="8" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
-              <path d="M110 100 L130 60 L270 60 L290 100Z" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
-              <rect x="135" y="65" width="55" height="32" rx="3" fill="rgba(14,165,233,0.1)" stroke="rgba(14,165,233,0.2)" stroke-width="1"/>
-              <rect x="200" y="65" width="65" height="32" rx="3" fill="rgba(14,165,233,0.1)" stroke="rgba(14,165,233,0.2)" stroke-width="1"/>
-              <rect class="car-part" data-part="engine" x="65" y="108" width="80" height="55" rx="6" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.12)" stroke-width="1"/><text x="105" y="138" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.4)" font-family="Inter,sans-serif">ENGINE</text>
-              <rect class="car-part" data-part="transmission" x="155" y="115" width="90" height="40" rx="6" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.12)" stroke-width="1"/><text x="200" y="138" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.4)" font-family="Inter,sans-serif">TRANS</text>
-              <rect class="car-part" data-part="battery" x="68" y="108" width="32" height="22" rx="4" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.12)" stroke-width="1"/><text x="84" y="122" text-anchor="middle" font-size="7" fill="rgba(255,255,255,0.4)" font-family="Inter,sans-serif">BAT</text>
-              <rect class="car-part" data-part="ac" x="255" y="108" width="75" height="30" rx="5" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.12)" stroke-width="1"/><text x="292" y="126" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.4)" font-family="Inter,sans-serif">A/C</text>
-              <circle class="car-part" data-part="brakes" cx="95" cy="175" r="22" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
-              <circle class="car-part" data-part="tyres" cx="95" cy="175" r="30" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="6"/>
-              <circle class="car-part" data-part="brakes" cx="305" cy="175" r="22" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
-              <circle class="car-part" data-part="tyres" cx="305" cy="175" r="30" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="6"/>
-              <line class="car-part" data-part="suspension" x1="95" y1="148" x2="95" y2="155" stroke="rgba(255,255,255,0.15)" stroke-width="5" stroke-linecap="round"/>
-              <line class="car-part" data-part="suspension" x1="305" y1="148" x2="305" y2="155" stroke="rgba(255,255,255,0.15)" stroke-width="5" stroke-linecap="round"/>
-            </svg>
-          </div>
-          <div class="health-score">
-            <div class="health-score-ring">
-              <svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="8"/><circle id="healthScoreCircle" cx="50" cy="50" r="40" fill="none" stroke="var(--accent-blue)" stroke-width="8" stroke-linecap="round" stroke-dasharray="251" stroke-dashoffset="251"/></svg>
-              <div class="health-score-num" id="healthScoreNum" style="color:var(--accent-blue);">--</div>
-            </div>
-            <div class="health-score-label">Vehicle Health</div>
+
+    <div class="advisor-wrap fade-up" id="advisorWrap">
+
+      <!-- LEFT — Diagnostic Questions -->
+      <div class="advisor-left">
+        <div class="advisor-left-header">
+          <div class="advisor-step-label" id="advisorStepLabel">Step 1 of 6</div>
+          <div class="advisor-title">Intelligent Diagnostic</div>
+          <div class="advisor-progress" id="advisorProgress">
+            <div class="advisor-progress-dot active"></div>
+            <div class="advisor-progress-dot"></div>
+            <div class="advisor-progress-dot"></div>
+            <div class="advisor-progress-dot"></div>
+            <div class="advisor-progress-dot"></div>
+            <div class="advisor-progress-dot"></div>
           </div>
         </div>
+
+        <div class="advisor-question-area" id="advisorQuestionArea">
+          <!-- Rendered by JS -->
+        </div>
+
+        <div class="advisor-nav">
+          <button class="advisor-nav-back" id="advisorBack" disabled>
+            ← Back
+          </button>
+          <button class="advisor-nav-next" id="advisorNext">
+            Next →
+          </button>
+        </div>
       </div>
-      <div class="hc-result" id="hcResult">
-        <div style="font-size:0.82rem;font-weight:700;color:var(--white);margin-bottom:1rem;">Recommended Services</div>
-        <div id="hcResultTags"></div>
+
+      <!-- RIGHT — Cinematic Visual -->
+      <div class="advisor-right">
+        <!-- Scan line ambient -->
+        <div class="advisor-scan-line"></div>
+
+        <!-- Cinematic BG — changes based on question -->
+        <div class="advisor-bg" id="advisorBg"
+          style="background-image:url('/public/assets/diagnosis.png');">
+        </div>
+        <div class="advisor-bg-overlay"></div>
+        <div class="advisor-bg-scan"></div>
+
+        <!-- Content layer -->
+        <div class="advisor-right-content">
+
+          <!-- Top row: score + tag -->
+          <div class="advisor-right-top">
+            <div class="advisor-score-wrap">
+              <div class="advisor-score-ring">
+                <svg viewBox="0 0 100 100">
+                  <circle cx="50" cy="50" r="40" fill="none"
+                    stroke="rgba(255,255,255,0.06)" stroke-width="7"/>
+                  <circle id="advisorScoreCircle" cx="50" cy="50" r="40"
+                    fill="none" stroke="#0EA5E9" stroke-width="7"
+                    stroke-linecap="round"
+                    stroke-dasharray="251.2"
+                    stroke-dashoffset="251.2"/>
+                </svg>
+                <div class="advisor-score-num" id="advisorScoreNum"
+                  style="color:#0EA5E9;">--</div>
+              </div>
+              <div class="advisor-score-info">
+                <div class="advisor-score-label">Health Score</div>
+                <div class="advisor-score-value" id="advisorScoreValue">Analyzing</div>
+                <div class="advisor-score-sub" id="advisorScoreSub">Complete all steps</div>
+              </div>
+            </div>
+            <div class="advisor-tag">Live Analysis</div>
+          </div>
+
+          <!-- System status cards — mid section -->
+          <div class="advisor-systems" id="advisorSystems">
+            <div class="advisor-system-card" id="sys-engine">
+              <div class="advisor-sys-dot"></div>
+              <div>
+                <div class="advisor-sys-name">Engine</div>
+                <div class="advisor-sys-status" id="sys-engine-status">Not checked</div>
+              </div>
+            </div>
+            <div class="advisor-system-card" id="sys-ac">
+              <div class="advisor-sys-dot"></div>
+              <div>
+                <div class="advisor-sys-name">A/C System</div>
+                <div class="advisor-sys-status" id="sys-ac-status">Not checked</div>
+              </div>
+            </div>
+            <div class="advisor-system-card" id="sys-brakes">
+              <div class="advisor-sys-dot"></div>
+              <div>
+                <div class="advisor-sys-name">Brakes</div>
+                <div class="advisor-sys-status" id="sys-brakes-status">Not checked</div>
+              </div>
+            </div>
+            <div class="advisor-system-card" id="sys-battery">
+              <div class="advisor-sys-dot"></div>
+              <div>
+                <div class="advisor-sys-name">Battery</div>
+                <div class="advisor-sys-status" id="sys-battery-status">Not checked</div>
+              </div>
+            </div>
+            <div class="advisor-system-card" id="sys-tyres">
+              <div class="advisor-sys-dot"></div>
+              <div>
+                <div class="advisor-sys-name">Tyres</div>
+                <div class="advisor-sys-status" id="sys-tyres-status">Not checked</div>
+              </div>
+            </div>
+            <div class="advisor-system-card" id="sys-suspension">
+              <div class="advisor-sys-dot"></div>
+              <div>
+                <div class="advisor-sys-name">Suspension</div>
+                <div class="advisor-sys-status" id="sys-suspension-status">Not checked</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Result bar — appears after completion -->
+          <div class="advisor-result-bar" id="advisorResultBar">
+            <div class="advisor-result-title">Recommended Services</div>
+            <div class="advisor-result-services" id="advisorResultServices"></div>
+            <div class="advisor-result-ctas">
+              <a href="https://wa.me/971522553418?text=Hi%2C%20I%20completed%20the%20Vehicle%20Health%20Advisor%20and%20need%20a%20service%20booking."
+                target="_blank" class="btn btn-whatsapp" style="font-size:0.82rem;padding:0.6rem 1.3rem;">
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                Book via WhatsApp
+              </a>
+              <a href="tel:+971522553418" class="btn btn-secondary" style="font-size:0.82rem;padding:0.6rem 1.3rem;">
+                Call Us Now
+              </a>
+              <button onclick="window.advisorReset()" class="btn btn-ghost" style="font-size:0.78rem;padding:0.6rem 1rem;">
+                Start Over
+              </button>
+            </div>
+          </div>
+
+        </div>
       </div>
     </div>
   </div>
